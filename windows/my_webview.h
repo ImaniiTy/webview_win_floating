@@ -52,6 +52,8 @@ public:
 
 	virtual HRESULT clearCache() = 0;
 	virtual HRESULT clearCookies() = 0;
+	virtual HRESULT addCookie(LPCWSTR name, LPCWSTR value, LPCWSTR domain,
+                                 LPCWSTR path) = 0;
 
 	virtual HRESULT suspend() = 0;
 	virtual HRESULT resume() = 0;

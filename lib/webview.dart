@@ -35,8 +35,7 @@ class WinNavigationDelegate {
   });
 }
 
-typedef WebViewCreatedCallback = void Function(
-    WinWebViewController webViewController);
+typedef WebViewCreatedCallback = void Function(WinWebViewController webViewController);
 typedef PageStartedCallback = void Function(String url);
 typedef PageFinishedCallback = void Function(String url);
 typedef PageTitleChangedCallback = void Function(String title);
@@ -124,8 +123,7 @@ class WinWebViewController {
   WinWebViewController(String? userDataFolder) {
     _finalizer.attach(this, _webviewId, detach: this);
     WebviewWinFloatingPlatform.instance.registerWebView(_webviewId, this);
-    _initFuture = WebviewWinFloatingPlatform.instance
-        .create(_webviewId, initialUrl: null, userDataFolder: userDataFolder);
+    _initFuture = WebviewWinFloatingPlatform.instance.create(_webviewId, initialUrl: null, userDataFolder: userDataFolder);
   }
 
   Future<void> setNavigationDelegate(WinNavigationDelegate delegate) async {
@@ -135,18 +133,15 @@ class WinWebViewController {
   Future<void> setJavaScriptMode(JavaScriptMode javaScriptMode) async {
     bool isEnable = javaScriptMode == JavaScriptMode.unrestricted;
     await _initFuture;
-    await WebviewWinFloatingPlatform.instance
-        .enableJavascript(_webviewId, isEnable);
+    await WebviewWinFloatingPlatform.instance.enableJavascript(_webviewId, isEnable);
   }
 
-  Future<void> addJavaScriptChannel(String name,
-      {required JavaScriptMessageCallback callback}) async {
+  Future<void> addJavaScriptChannel(String name, {required JavaScriptMessageCallback callback}) async {
     bool isExists = _javaScriptMessageCallbacks.containsKey(name);
     _javaScriptMessageCallbacks[name] = callback;
     if (!isExists) {
       await _initFuture;
-      await WebviewWinFloatingPlatform.instance
-          .addScriptChannelByName(_webviewId, name);
+      await WebviewWinFloatingPlatform.instance.addScriptChannelByName(_webviewId, name);
     }
   }
 
@@ -155,8 +150,7 @@ class WinWebViewController {
     _javaScriptMessageCallbacks.remove(name);
     if (!isExists) {
       await _initFuture;
-      await WebviewWinFloatingPlatform.instance
-          .removeScriptChannelByName(_webviewId, name);
+      await WebviewWinFloatingPlatform.instance.removeScriptChannelByName(_webviewId, name);
     }
   }
 
@@ -174,8 +168,7 @@ class WinWebViewController {
     }
   }
 
-  void notifyOnPageStarted_(
-      String url, bool isNewWindow, bool isUserInitiated) async {
+  void notifyOnPageStarted_(String url, bool isNewWindow, bool isUserInitiated) async {
     // isUserInitiated==true when user click a link
     // isUserInitiated==false when loadRequest() called
     // NOTE: in [webview_flutter], every time user click a url will cancel it first,
@@ -186,8 +179,7 @@ class WinWebViewController {
     if (isUserInitiated) {
       NavigationDecision decision = NavigationDecision.navigate;
       if (_navigationDelegate.onNavigationRequest != null) {
-        decision = await _navigationDelegate.onNavigationRequest!(
-            NavigationRequest(url: url, isMainFrame: !isNewWindow));
+        decision = await _navigationDelegate.onNavigationRequest!(NavigationRequest(url: url, isMainFrame: !isNewWindow));
       }
       bool isAllowed = (decision == NavigationDecision.navigate);
       if (isAllowed) loadRequest_(url);
@@ -242,8 +234,7 @@ class WinWebViewController {
   late Offset _lastLayoutOffset;
   late Size _lastLayoutSize;
   late double _lastDevicePixelRatio;
-  Future<void> _updateBounds(
-      Offset offset, Size size, double devicePixelRatio) async {
+  Future<void> _updateBounds(Offset offset, Size size, double devicePixelRatio) async {
     await _initFuture;
     if (!_isNowFullScreen) {
       _lastLayoutOffset = offset;
@@ -251,15 +242,14 @@ class WinWebViewController {
       _lastDevicePixelRatio = devicePixelRatio;
       // NOTE: DO NOT update webview bounds when fullscreen
       await _initFuture;
-      await WebviewWinFloatingPlatform.instance.updateBounds(_webviewId,
-          _lastLayoutOffset, _lastLayoutSize, _lastDevicePixelRatio);
+      await WebviewWinFloatingPlatform.instance
+          .updateBounds(_webviewId, _lastLayoutOffset, _lastLayoutSize, _lastDevicePixelRatio);
     }
   }
 
   Future<void> _setVisibility(bool isVisible) async {
     await _initFuture;
-    await WebviewWinFloatingPlatform.instance
-        .setVisibility(_webviewId, isVisible);
+    await WebviewWinFloatingPlatform.instance.setVisibility(_webviewId, isVisible);
   }
 
   void setFullScreen(bool bEnable) async {
@@ -267,8 +257,8 @@ class WinWebViewController {
     await _initFuture;
     WebviewWinFloatingPlatform.instance.setFullScreen(_webviewId, bEnable);
     if (!bEnable) {
-      await WebviewWinFloatingPlatform.instance.updateBounds(_webviewId,
-          _lastLayoutOffset, _lastLayoutSize, _lastDevicePixelRatio);
+      await WebviewWinFloatingPlatform.instance
+          .updateBounds(_webviewId, _lastLayoutOffset, _lastLayoutSize, _lastDevicePixelRatio);
     }
   }
 
@@ -276,8 +266,7 @@ class WinWebViewController {
       {LoadRequestMethod method = LoadRequestMethod.get,
       Map<String, String> headers = const <String, String>{},
       Uint8List? body}) {
-    return loadRequest_(uri.toString(),
-        method: method, headers: headers, body: body);
+    return loadRequest_(uri.toString(), method: method, headers: headers, body: body);
   }
 
   Future<void> loadRequest_(String url,
@@ -298,33 +287,28 @@ class WinWebViewController {
 
   Future<void> runJavaScript(String javaScriptString) async {
     await _initFuture;
-    await WebviewWinFloatingPlatform.instance
-        .runJavaScript(_webviewId, javaScriptString);
+    await WebviewWinFloatingPlatform.instance.runJavaScript(_webviewId, javaScriptString);
   }
 
   Future<Object> runJavaScriptReturningResult(String javaScriptString) async {
     await _initFuture;
-    return await WebviewWinFloatingPlatform.instance
-        .runJavaScriptReturningResult(_webviewId, javaScriptString);
+    return await WebviewWinFloatingPlatform.instance.runJavaScriptReturningResult(_webviewId, javaScriptString);
   }
 
   Future<void> addScriptChannelByName(String channelName) async {
     await _initFuture;
-    await WebviewWinFloatingPlatform.instance
-        .addScriptChannelByName(_webviewId, channelName);
+    await WebviewWinFloatingPlatform.instance.addScriptChannelByName(_webviewId, channelName);
   }
 
   Future<void> removeScriptChannelByName(String channelName) async {
     await _initFuture;
-    await WebviewWinFloatingPlatform.instance
-        .removeScriptChannelByName(_webviewId, channelName);
+    await WebviewWinFloatingPlatform.instance.removeScriptChannelByName(_webviewId, channelName);
   }
 
   Future<void> setUserAgent(String? userAgent) async {
     if (userAgent == null) return;
     await _initFuture;
-    await WebviewWinFloatingPlatform.instance
-        .setUserAgent(_webviewId, userAgent);
+    await WebviewWinFloatingPlatform.instance.setUserAgent(_webviewId, userAgent);
   }
 
   Future<void> requestFocus() async {
@@ -335,8 +319,7 @@ class WinWebViewController {
   Future<void> setBackgroundColor(Color color) async {
     await _initFuture;
     _backgroundColor = color;
-    return await WebviewWinFloatingPlatform.instance
-        .setBackgroundColor(_webviewId, color);
+    return await WebviewWinFloatingPlatform.instance.setBackgroundColor(_webviewId, color);
   }
   //
 
@@ -383,6 +366,11 @@ class WinWebViewController {
   Future<void> clearCookies() async {
     await _initFuture;
     await WebviewWinFloatingPlatform.instance.clearCookies(_webviewId);
+  }
+
+  Future<void> addCookie(String? name, String? value, String? domain, String? path) async {
+    await _initFuture;
+    await WebviewWinFloatingPlatform.instance.addCookie(_webviewId, name, value, domain, path);
   }
 
   //
