@@ -179,6 +179,17 @@ void WebviewWinFloatingPlugin::HandleMethodCall(
           std::make_unique<flutter::EncodableValue>(arguments));
     };
 
+    auto onDownloadStarted = [=](std::string url) -> void {
+      flutter::EncodableMap arguments;
+      arguments[flutter::EncodableValue("webviewId")] =
+          flutter::EncodableValue(webviewId);
+      arguments[flutter::EncodableValue("url")] =
+          flutter::EncodableValue(url);
+      gMethodChannel->InvokeMethod(
+          "onDownloadStarted",
+          std::make_unique<flutter::EncodableValue>(arguments));
+    };
+
     PCWSTR pwUserDataFolder = NULL;
     WCHAR wUserDataFolder[1024];
     auto userDataFolder = std::get<std::string>(
@@ -198,7 +209,7 @@ void WebviewWinFloatingPlugin::HandleMethodCall(
 
     MyWebView::Create(g_NativeHWND, onCreate, onPageStarted, onPageFinished,
                       onPageTitleChanged, onWebMessageReceived,
-                      onMoveFocusRequest, onFullScreenChanged, onHistoryChanged,
+                      onMoveFocusRequest, onFullScreenChanged, onHistoryChanged,onDownloadStarted,
                       pwUserDataFolder);
 
   } else if (method_call.method_name().compare("updateBounds") == 0) {

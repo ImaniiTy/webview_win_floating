@@ -52,6 +52,7 @@ public:
                 std::function<void(bool)> onMoveFocusRequest,
                 std::function<void(bool)> onFullScreenChanged,
                 std::function<void()> onHistoryChanged,
+                std::function<void(std::string)> onDownloadStarted,
                 PCWSTR pwUserDataFolder);
 
   virtual ~MyWebViewImpl() override;
@@ -102,6 +103,7 @@ private:
   bool m_hasRegisteredChannel = false;
 
   wil::com_ptr<ICoreWebView2> m_pWebview;
+  // wil::com_ptr<ICoreWebView2_4> m_pWebview;
   wil::com_ptr<ICoreWebView2Controller> m_pController;
   wil::com_ptr<ICoreWebView2Settings> m_pSettings;
   RECT m_bounds = {0, 0, 0, 0};
@@ -122,11 +124,12 @@ MyWebView *MyWebView::Create(
     std::function<void(std::string)> onWebMessageReceived,
     std::function<void(bool)> onMoveFocusRequest,
     std::function<void(bool)> onFullScreenChanged,
-    std::function<void()> onHistoryChanged, PCWSTR pwUserDataFolder) {
+    std::function<void()> onHistoryChanged,
+    std::function<void(std::string)> onDownloadStarted, PCWSTR pwUserDataFolder) {
   return new MyWebViewImpl(hWnd, callback, onPageStarted, onPageFinished,
                            onPageTitleChanged, onWebMessageReceived,
                            onMoveFocusRequest, onFullScreenChanged,
-                           onHistoryChanged, pwUserDataFolder);
+                           onHistoryChanged,onDownloadStarted, pwUserDataFolder);
 }
 
 HRESULT InitWebViewRuntime(PCWSTR pwUserDataFolder,
@@ -160,7 +163,8 @@ MyWebViewImpl::MyWebViewImpl(
     std::function<void(std::string)> onWebMessageReceived,
     std::function<void(bool)> onMoveFocusRequest,
     std::function<void(bool)> onFullScreenChanged,
-    std::function<void()> onHistoryChanged, PCWSTR pwUserDataFolder = NULL) {
+    std::function<void()> onHistoryChanged,
+    std::function<void(std::string)> onDownloadStarted, PCWSTR pwUserDataFolder = NULL) {
   InitWebViewRuntime(pwUserDataFolder, [=](HRESULT hr) -> void {
     if (hr != S_OK) {
       onCreated(hr, NULL);
@@ -179,6 +183,7 @@ MyWebViewImpl::MyWebViewImpl(
               hr = controller->get_CoreWebView2(&m_pWebview);
               hr = m_pWebview->get_Settings(&m_pSettings);
               m_pController = controller;
+              // m_pWebview = m_pWebview_old.try_query<ICoreWebView2_4>();
 
               m_pSettings->put_AreDefaultContextMenusEnabled(FALSE);
 
@@ -277,6 +282,8 @@ MyWebViewImpl::MyWebViewImpl(
                       .Get(),
                   NULL);
 
+              
+
               m_pWebview->add_NavigationCompleted(
                   Callback<ICoreWebView2NavigationCompletedEventHandler>(
                       [=](ICoreWebView2 *sender,
@@ -319,6 +326,32 @@ MyWebViewImpl::MyWebViewImpl(
                         return S_OK;
                       })
                       .Get(),
+                  NULL);
+
+              auto webview2_4 = m_pWebview.try_query<ICoreWebView2_4>();
+
+              webview2_4->add_DownloadStarting(
+                Callback<ICoreWebView2DownloadStartingEventHandler>(
+                [=](
+                    ICoreWebView2* sender,
+                    ICoreWebView2DownloadStartingEventArgs* args) -> HRESULT {
+                      // args->put_Handled(TRUE);
+                      args->put_Cancel(TRUE);
+
+                      wil::com_ptr<ICoreWebView2DownloadOperation> download;
+                      args->get_DownloadOperation(&download);
+
+                      wil::unique_cotaskmem_string uri;
+                      HRESULT hr = download->get_Uri(&uri);
+
+                      if(SUCCEEDED(hr)) {
+                        std::string url = utf8_encode(uri.get());
+
+                        onDownloadStarted(url);
+                      }
+
+                      return S_OK;
+                    }).Get(),
                   NULL);
 
               m_pWebview->add_DocumentTitleChanged(

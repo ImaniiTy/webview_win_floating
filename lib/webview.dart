@@ -1,8 +1,7 @@
-export 'webview_plugin.dart';
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+// import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
@@ -11,6 +10,8 @@ import 'package:webview_flutter_platform_interface/webview_flutter_platform_inte
 
 import 'layout_notify_widget.dart';
 import 'webview_win_floating_platform_interface.dart';
+
+export 'webview_plugin.dart';
 
 class WinNavigationDelegate {
   final NavigationRequestCallback? onNavigationRequest;
@@ -22,6 +23,7 @@ class WinNavigationDelegate {
   final PageTitleChangedCallback? onPageTitleChanged;
   final FullScreenChangedCallback? onFullScreenChanged;
   final HistoryChangedCallback? onHistoryChanged;
+  final DownloadStartedCallback? onDownloadStarted;
 
   WinNavigationDelegate({
     this.onNavigationRequest,
@@ -32,6 +34,7 @@ class WinNavigationDelegate {
     this.onPageTitleChanged,
     this.onFullScreenChanged,
     this.onHistoryChanged,
+    this.onDownloadStarted,
   });
 }
 
@@ -43,6 +46,7 @@ typedef JavaScriptMessageCallback = void Function(JavaScriptMessage message);
 typedef FullScreenChangedCallback = void Function(bool isFullScreen);
 typedef MoveFocusRequestCallback = void Function(bool isNext);
 typedef HistoryChangedCallback = void Function();
+typedef DownloadStartedCallback = void Function(DownloadOperation downloadOperation);
 
 class WinWebViewWidget extends StatefulWidget {
   final WinWebViewController controller;
@@ -230,6 +234,10 @@ class WinWebViewController {
     }
   }
 
+  void notifyDownloadStarted_(String url) {
+    _navigationDelegate.onDownloadStarted?.call(DownloadOperation(url: url));
+  }
+
   bool _isNowFullScreen = false;
   late Offset _lastLayoutOffset;
   late Size _lastLayoutSize;
@@ -410,4 +418,12 @@ class WinWebViewController {
     await _initFuture;
     await WebviewWinFloatingPlatform.instance.openDevTools(_webviewId);
   }
+}
+
+class DownloadOperation {
+  String url;
+
+  DownloadOperation({
+    required this.url,
+  });
 }

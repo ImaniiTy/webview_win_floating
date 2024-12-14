@@ -56,6 +56,9 @@ class MethodChannelWebviewWinFloating extends WebviewWinFloatingPlatform {
         controller.notifyFullScreenChanged_(isFullScreen!);
       } else if (call.method == "onHistoryChanged") {
         controller.notifyHistoryChanged_();
+      } else if (call.method == "onDownloadStarted") {
+        String url = call.arguments["url"]!;
+        controller.notifyDownloadStarted_(url);
       } else {
         assert(false, "unknown call from native: ${call.method}");
       }

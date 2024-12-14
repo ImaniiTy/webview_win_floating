@@ -22,6 +22,7 @@ public:
 		std::function<void(bool)> onMoveFocusRequest,
 		std::function<void(bool)> onFullScreenChanged,
 		std::function<void()> onHistoryChanged,
+		std::function<void(std::string)> onDownloadStarted,
 		PCWSTR pwUserDataFolder = NULL);
 
 	//MyWebView();
